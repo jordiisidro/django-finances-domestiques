@@ -1,0 +1,85 @@
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <form method="POST" role="form" class="form-inline" action="{% url 'mov:caixa_usuaris' obj.pk %}" >
+        {% csrf_token %}
+            <div class="col-xl-12 col-md-12 mb-12">
+                {% if obj %}
+                <div class="card border-left-info shadow h-100 py-2">
+                {% else %}
+                <div class="card border-left-success shadow h-100 py-2">
+                {% endif %}
+		            <div class="card-body">
+		                <div class="row no-gutters align-items-center">
+		                    <div class="col mr-2">
+		                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+		                            Caixes disponibles per a usuaris
+		                        </div>
+		                        <div class="dropdown-divider"></div>
+		                        <div class="row">
+		                           
+		                          <div class="col-10">
+		                                <div class="input-group">
+		                         			 <select name="usuaris" id="usuaris" multiple  class="form-control">
+												{% for u in usr %}
+												 	<option value="{{u.id}}" {%if obj.usuaris.all|is_username:u.username %} selected {% endif %} >{{ u.username }}</option>
+												{% endfor %}
+											</select> 
+		         				      </div>
+		                          </div>
+		                        </div> 
+		                         
+		                        <div class="dropdown-divider"></div>
+		                        
+		                        
+		                        
+		                        
+		                        <div class="row">
+		                            <div class="col">
+		                                <button type="submit" class="btn btn-danger">
+		                                    <span class="fa fa-save"></span> Salvar </button>
+		                                <a href="{% url 'mov:caixa_list' %}" class="btn btn-success"><span
+		                                        class="fa fa-undo"> Cancel&middot;lar</span> </a>
+		                                </button>
+		                            </div>
+		                        </div>
+		                    </div>
+		                </div>
+		            </div>
+		        </div>
+		    </div>
+		</form>
+    </div>
+</div>
+
+<script>
+$(function() {
+
+    var url = $("form").attr("action");
+    var token = jQuery("[name=csrfmiddlewaretoken]").val();
+
+    $("form").submit(function(e){
+        e.preventDefault();
+        // alert(token);
+        var formData = $("form").serializeArray();
+        // console.log(formData);
+        $.ajax({
+            url:url,
+            method:"POST",
+            headers: {'X-CSRFToken': token },
+            data: formData
+        })
+        .done(function(r,textStatus,xhr){
+            if(xhr.status=200){
+                location.reload(true);
+            }
+            else{
+				mensaje(textStatus);
+            }
+        }).fail(function (error) {
+        	mensaje(error.responseText, 'error');
+        });
+    });
+});
+
+
+</script>

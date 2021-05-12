@@ -1,0 +1,7 @@
+eclipse.preferences.version=1
+encoding//bases/templates/bases/sense_privilegis.html=UTF-8
+encoding//mov/models.py=UTF-8
+encoding//mov/templates/mov/grupMoviment_form.html=UTF-8
+encoding//mov/templates/mov/grupMoviment_list.html=UTF-8
+encoding/<project>=UTF-8
+separateDerivedEncodings=true

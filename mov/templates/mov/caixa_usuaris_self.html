@@ -1,0 +1,71 @@
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+		<form method="POST" class="form-inline">
+		    {% csrf_token %}
+		    <div class="col-xl-12 col-md-6 mb-6">
+		        <div class="card border-left-warning shadow h-100 py-2">
+		          <div class="card-body">
+		            <div class="row no-gutters align-items-center">
+		              <div class="col mr-4">
+		                <div class="text-xs font-weight-bold text-warning text-uppercase mb-2">{% if obj.usuaris|is_username:user.username %} Desactivar {% else %} Activar {% endif %} {{ obj.descripcio }}?</div>
+		                <button type="button" class="btn btn-danger" id="btnInactivar"><i class="far fa-question-circle"></i> S&iacute, {% if obj.usuaris|is_username:user.username %} desactivar {% else %} activar {% endif %}</button>
+		                <button type="button" class="btn btn-success" onclick="return tancar_modal()"> Cancel·lar </button>
+		              </div>
+		              <div class="col-auto">
+		                <i class="fas fa-question-circle fa-2x text-gray-300"></i>
+		              </div>
+		            </div>
+		          </div>
+		        </div>
+		      </div>
+		</form>
+	</div>
+</diV>
+
+
+<script>
+  $(document).ready(function(){
+  
+    var token = $('input[name=csrfmiddlewaretoken]').val();
+    $.ajaxSetup({
+          beforeSend: function(xhr, settings) {
+              if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                  xhr.setRequestHeader("X-CSRFToken", token);
+              }
+          }
+      });
+  
+    $("#btnInactivar").click(function(e){
+        e.preventDefault();
+        var id = {{ obj.id }};
+  		var template="{% url 'mov:caixa_canvia_estat' obj.id %}";
+        var data = {"id":id};
+        data = JSON.stringify(data);
+  
+        $.ajax({
+          type: "POST",
+          url: template,
+          data: data,
+          beforeSend: function(xhr,settings){
+            $.ajaxSettings.beforeSend(xhr,settings);
+          },
+          success: function(response){
+            //alert(response)
+        	console.log(response);
+            var tipo=(response.startsWith('Element no existeix') ? 'red':'green' );
+            //mensaje(response);
+            tancar_modal();
+            location.reload();
+            
+          },
+          error: function(jqXHR, textStatus, errorThrow){
+            console.log(textStatus, errorThrow);
+            mensaje(response, 'red');
+            tancar_modal();
+          }
+        });
+    });
+  
+  });
+  </script>
+  

@@ -1,0 +1,127 @@
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+    	
+    	 {% if obj %}
+        <form id="form" method="POST" role="form" class="form-inline" action="{% url 'mov:detallMoviment_edit' obj.pk %}" >
+        {% else %}
+        <form id="form" method="POST" role="form" class="form-inline" action="{% url 'mov:detallMoviment_new' %}" >
+        {% endif %}
+         {% csrf_token %}
+            <div class="col-xl-12 col-md-12 mb-12">
+                {% if obj %}
+                <div class="card border-left-info shadow h-100 py-2">
+                {% else %}
+                <div class="card border-left-success shadow h-100 py-2">
+                {% endif %}
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            {% if obj %} Editar {% else %} Nou {% endif %} detall de moviment
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        {% csrf_token %}
+                        <div class="row">
+                            {#{ form.as_p }#}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="col-md-6">{{form.descripcio.label}}</div>
+                                <div class="col-md-6">{{form.descripcio}}</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="col-md-6">{{form.estat.label}}</div>
+                                <div class="col-md-6">{{form.estat}}</div>    
+                            </div>                            
+                        </div>
+                       
+
+             
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="col-md-6">Grup</div>
+                                <div class="col-md-6">
+                                    <select name="grupMoviment" id="id_grupMoviment" class="form-control from-control-sm">
+                                        <option value="0">-------</option>
+                                        {% for item in grupsMoviment %}
+                                        <option value="{{item.id}}">{{item.descripcio}}</option>
+                                        {% endfor%}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="col-md-6">Subgrup</div>
+                                <div class="col-md-6">
+                                    <select name="subgrupMoviment" id="id_subgrupMoviment" class="form-control from-control-sm">
+                                        <option value="0">-------</option>
+                                        {% for item in subgrupsMoviment %}
+                                        <option value="{{item.id}}" data-chained="{{item.grupMoviment.id}}">{{item.descripcio}}</option>
+                                        {% endfor%}
+                                    </select>
+                                </div>
+                            </div>                           
+                        </div>
+
+                        <div class="dropdown-divider"></div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-danger"><span class="fa fa-save"></span> Salvar</button>
+                                <button type="button" class="btn btn-success" onclick="return tancar_modal()">
+                                    Cancel·lar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="far fa-calendar-plus fa-2x text-gray-300"></i>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(function() {
+ 
+    	
+    	$("#id_grupMoviment").val("{{ obj.subgrupMoviment.grupMoviment.id }}").change();
+        $("#id_subgrupMoviment").val("{{ obj.subgrupMoviment.id }}").change();
+        $("#id_subgrupMoviment").chained("#id_grupMoviment");
+    });
+</script>
+
+<script>
+$(function() {
+
+    var url = $("form").attr("action");
+    var token = jQuery("[name=csrfmiddlewaretoken]").val();
+
+    $("form").submit(function(e){
+        e.preventDefault();
+        // alert(token);
+        var formData = $("form").serializeArray();
+        // console.log(formData);
+        $.ajax({
+            url:url,
+            method:"POST",
+            headers: {'X-CSRFToken': token },
+            data: formData
+        })
+        .done(function(r,textStatus,xhr){
+            if(xhr.status=200){
+                location.reload(true);
+            }
+            else{
+				mensaje(textStatus);
+            }
+        }).fail(function (error) {
+        	mensaje(error.responseText, 'error');
+        });
+    });
+});
+</script>

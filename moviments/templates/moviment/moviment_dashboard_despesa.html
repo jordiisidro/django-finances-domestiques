@@ -1,0 +1,284 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<!-- Dropdown Card Example -->
+<div class="card shadow mb-4">
+    <!-- Card Header - Dropdown -->
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    	 <div class="col-md-7">
+      <h6 class="m-0 font-weight-bold text-primary">Despesa</h6>
+    </div>
+    
+    <div class="col-md-2">
+        <div class="row no-gutters align-items-top">
+              <div class="col-md-6"><label for="lvl_dataInici">Mes</label>  </div>             
+              <select id="id_mes"  class="form-control">
+              	{%for m in lblMesos %}
+              		 <option value="{{m}}" {% if m|equals:month %} selected {%endif%}>{{m|get_mes}}</option>
+              	{% endfor %}
+              </select>
+          </div>
+      </div>
+
+	  <div class="col-md-2">
+          <div class="row no-gutters align-items-top">
+              <div class="col-md-6"><label for="id_dataFi">Any</label></div>
+              <input id="id_any" class="form-control" value="{{year}}"></input>
+          </div>
+      </div>
+
+
+	  <div class="col-md-2 align-items-center">
+          <div class="row no-gutters align-items-center">
+           
+              <div class="col-md-3"><button type="button" class="btn btn-primary" onclick="obre_url('{% url 'moviments:dashboard_despesa'%}')"> Refrescar  </button>  </div>
+             
+          </div>
+      </div>
+    </div>
+    
+   
+    <div class="col-xl-12 col-md-12 mb-12">	
+   		<div class="card  h-100 py-2">
+   			<div class="card-body">
+                <div class="row no-gutters align-items-center">
+                 <div class="col mr-6">
+			         &nbsp;<canvas id="despesa"  width="50" height="25" ></canvas>
+					</div>
+					
+					<div class="col mr-6">
+					&nbsp;<canvas id="despesaSubgrup"  width="50" height="25" ></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+   	
+   	
+ </div>  	
+   
+
+{% endblock page_content %}
+
+{% block js_page %}
+<script>
+  //Call the dataTables jQuery plugin
+  $(document).ready(function() {
+    $('.table').DataTable();
+  });
+  
+  
+  function addPoints(nStr)
+  {
+  	nStr += '';
+  	x = nStr.split('.');
+  	x1 = x[0];
+  	x2 = x.length > 1 ? '.' + x[1] : '';
+  	var rgx = /(\d+)(\d{3})/;
+  	while (rgx.test(x1)) {
+  		x1 = x1.replace(rgx, '$1' + '.' + '$2');
+  	}
+  	return x1 + x2;
+  };
+
+  function obre_url(urlInicial){
+		var mes = document.getElementById('id_mes').value
+		var any = document.getElementById('id_any').value
+		window.open(urlInicial+'/'+any+'/'+mes,"_self")
+		
+	}
+  
+  
+  function randomColor() {
+	  var letters = '0123456789ABCDEF';
+	  var color = '#';
+	  for (var i = 0; i < 6; i++) {
+	    color += letters[Math.floor(Math.random() * 16)];
+	  }
+	  return color;
+}
+
+  var grup ="CASA" 
+ 
+ var dictSubgrups ={} 
+  {% for grups in vDespesaSubgrup %}
+	dictSubgrups['{{grups}}'] = {}
+	{% for x in vDespesaSubgrup|get_keys:grups %}
+	
+		dictSubgrups['{{grups}}']['{{x}}']=  {{vDespesaSubgrup|get_values:grups|get_values_list:x}}
+	{% endfor %}
+			
+	{% endfor %}
+  
+  //var dictSubgrups = {'CASA':{'AIGUA':[100,2,3,4,5,6,7,8,9,10,11,12],'LLUM':[1,2,3,4,5,6,7,8,9,10,11,12], }, 
+//		  'OCI':{'SOL':[10,20,30,40,50,60,70,80,90,100,110,120],'PLATJA':[15,25,35,45,55,65,75,85,95,105,115,125], }  };
+ 
+  
+  	
+  
+  
+  
+  /**************************
+  *  Despesa  Subgrup       *
+  **************************/
+  var barDataDespesaSubgrup = {
+	  		labels:  [{% for i in mesLabels %} '{{i}}', {% endfor %}],
+	    };
+	    
+    
+  
+    var despSubgrup = document.getElementById('despesaSubgrup');
+    var despesaSubgrup = new Chart(despSubgrup, {
+  	    type: 'bar',
+  	    data: barDataDespesaSubgrup ,
+  	    options: {
+  	    	
+  	    	title: {
+  				display: true,
+  				fontSize: 20
+  			},
+  			tooltips: {
+  				mode: 'point',
+  				callbacks: {
+  					// Use the footer callback to display the sum of the items showing in the tooltip
+  					footer: function(tooltipItems, data) {
+    						var sum = 0;
+  						var mesIx = 0
+  						tooltipItems.forEach(function(tooltipItem) {
+    							mesIx = tooltipItem.index;
+    						});
+  						data.datasets.forEach(function(dataset){
+  							sum +=	 parseFloat(dataset.data[mesIx]);
+  							
+  						});
+    						return 'Total: ' +   parseFloat(sum).toLocaleString(undefined,  { minimumFractionDigits: 2 })+ '\u20AC';
+    					},
+  				},
+  				intersect: false
+  			},
+  			responsive: true,
+  			scales: {
+  				xAxes: [{
+  					stacked: true,
+  				}],
+  				yAxes: [{
+  					stacked: true,
+  					ticks: {
+ 	                    callback: function(value, index, values) {
+ 	                        return  addPoints(value);
+ 	                    }
+ 	                }
+  				}]
+  			},
+  			legend: {
+  				labels: {
+  					usePointStyle: true
+  				},
+  			},
+  			
+  	    }
+  	});
+    
+    
+    
+    function changeDatasets(){
+    	despesaSubgrup.options.title.text = grup
+    	despesaSubgrup.data.datasets =[]
+  	    for (var key in dictSubgrups[grup]) {
+  		  var newDataset = {
+  					label: key,
+  					data: dictSubgrups[grup][key],
+  					backgroundColor: randomColor(),
+  					fill: true
+  				};
+  		  despesaSubgrup.data.datasets.push(newDataset);
+  	    }
+  	  window.despesaSubgrup.update();
+  	}
+    
+  
+  
+  /********************
+  *  Despesa          *
+  ********************/
+    var barDataDespesa = {
+  		labels:  [{% for i in mesLabels %} '{{i}}', {% endfor %}],
+      		
+      	datasets: [
+      		{% for grups in vDespesa %}
+      		{
+      		label : '{{ grups }}', 	
+      		backgroundColor:  '{{ vDespesa|get_color:grups }}',
+      		data : {{ vDespesa|get_item:grups }}
+      		},
+      		{% endfor %}
+      	]
+    };
+    
+    
+    var desp = document.getElementById('despesa');
+    var despesa = new Chart(desp, {
+  	    type: 'bar',
+  	    data: barDataDespesa ,
+  	    options: {
+  	    	
+  	    	title: {
+  				display: true,
+  				text: 'Despesa',
+  				fontSize: 20
+  			},
+  			tooltips: {
+  				mode: 'point',
+  				callbacks: {
+  					// Use the footer callback to display the sum of the items showing in the tooltip
+  					footer: function(tooltipItems, data) {
+    						var sum = 0;
+  						var mesIx = 0
+  						tooltipItems.forEach(function(tooltipItem) {
+    							mesIx = tooltipItem.index;
+    						});
+  						data.datasets.forEach(function(dataset){
+  							sum +=	 parseFloat(dataset.data[mesIx]);
+  							
+  						});
+    						return 'Total: ' +   parseFloat(sum).toLocaleString(undefined,  { minimumFractionDigits: 2 })+ '\u20AC';
+    					},
+  				},
+  				intersect: false
+  			},
+  			responsive: true,
+  			scales: {
+  				xAxes: [{
+  					stacked: true,
+  				}],
+  				yAxes: [{
+  					stacked: true,
+  					ticks: {
+ 	                    callback: function(value, index, values) {
+ 	                        return  addPoints(value);
+ 	                    }
+ 	                }
+  				}]
+  			},
+  			legend: {
+  				labels: {
+  					usePointStyle: true
+  				},
+  				onClick: function(event, legendItem) {
+  					grup = legendItem.text; 
+  					changeDatasets()
+  				}
+  			},
+  			
+  	    }
+  	});
+    
+    
+
+
+   
+        
+  
+</script>
+{% endblock js_page %}

@@ -1,0 +1,331 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<!-- Dropdown Card Example -->
+<div class="card shadow mb-4">
+    <!-- Card Header - Dropdown -->
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+      <h6 class="m-0 font-weight-bold text-primary">Dashboard</h6>
+      <div class="dropdown no-arrow">
+      </div>
+    </div>
+    <!-- Card Body -->
+    <div class="card-body">
+       
+     
+    </div>
+    
+   
+    <div class="col-xl-12 col-md-12 mb-12">	
+   		<div class="card  h-100 py-2">
+   			 
+   			<div class="card-body">
+                    <div class="row no-gutters align-items-center">
+	                    <div class="col mr-6">
+	   			         &nbsp;	<canvas id="despesa"  width="50" height="25" ></canvas>
+	   					</div>
+	   					
+	   					<div class="col mr-6">
+	   			
+	   					&nbsp;<canvas id="ingres" width="50" height="25" ></canvas>
+	   					</div>
+					</div>
+   			</div>
+   			 
+   			<div class="card-body">
+                    <div class="row no-gutters align-items-center">
+	                    <div class="col mr-6">
+	   			         &nbsp;	<canvas id="balanc"  width="50" height="25" ></canvas>
+	   					</div>
+	   					
+	   					<div class="col mr-6">
+	   			
+	   					&nbsp;<canvas id="saldo" width="50" height="25" ></canvas>
+	   					</div>
+					</div>
+   			</div>
+   			
+   				
+   			
+   		</div>
+   	</div>
+</div>
+   	
+   
+
+{% endblock page_content %}
+
+{% block js_page %}
+<script>
+  //Call the dataTables jQuery plugin
+  $(document).ready(function() {
+    $('.table').DataTable();
+  });
+  
+  function addPoints(nStr)
+  {
+  	nStr += '';
+  	x = nStr.split('.');
+  	x1 = x[0];
+  	x2 = x.length > 1 ? '.' + x[1] : '';
+  	var rgx = /(\d+)(\d{3})/;
+  	while (rgx.test(x1)) {
+  		x1 = x1.replace(rgx, '$1' + '.' + '$2');
+  	}
+  	return x1 + x2;
+  };
+
+ 
+  
+  /********************
+   *  balanc          *
+   ********************/
+   function colorize(ctx) {
+		var v = ctx.dataset.data[ctx.dataIndex];
+		return c = v < 0 ? '#D60000': '#44DE28';
+	}  
+   
+  
+   var barDataBalanc = {
+			labels:  [{% for i in mesLabels %} '{{i}}', {% endfor %}],
+	    		
+	    	datasets: [{
+	    		data: {{vBalanc}},
+	    		backgroundColor:  colorize.bind( false),
+	    		label:''
+	    	}]
+	  };
+ 
+ var bal = document.getElementById('balanc');
+ var balanc = new Chart(bal, {
+	    type: 'bar',
+	    data: barDataBalanc ,
+	    options: {
+	    	title: {
+				display: true,
+				text: 'Balanç',
+				responsive: true,
+				fontSize: 20
+			},
+			legend: {
+				display: false
+			},
+			scales: {
+	            yAxes: [{
+	                ticks: {
+	                    // Include a dollar sign in the ticks
+	                    callback: function(value, index, values) {
+	                        return value
+	                    	//return  addPoints(value);
+	                    }
+	                }
+	            }]
+	        }
+	    }
+	});
+     
+  
+  
+/********************
+*  ingres          *
+********************/
+    var barDataIngres = {
+  		labels:  [{% for i in mesLabels %} '{{i}}', {% endfor %}],
+      		
+      	datasets: [
+      		{% for grups in vIngres %}
+      		{
+      		label : '{{ grups }}', 	
+      		backgroundColor:  '{{ vIngres|get_color:grups }}',
+      		data : {{ vIngres|get_item:grups }}
+      		},
+      		{% endfor %}
+      	]
+    };
+    
+    
+    var ingr = document.getElementById('ingres');
+    var ingres = new Chart(ingr, {
+  	    type: 'bar',
+  	    data: barDataIngres ,
+  	    options: {
+  	    	title: {
+  				display: true,
+  				text: 'Ingressos',
+				fontSize: 20
+  			},
+  			tooltips: {
+  				mode: 'point',
+				callbacks: {
+					footer: function(tooltipItems, data) {
+  						var sum = 0;
+						var mesIx = 0
+						tooltipItems.forEach(function(tooltipItem) {
+  							mesIx = tooltipItem.index;
+  						});
+						data.datasets.forEach(function(dataset){
+							sum +=	 parseFloat(dataset.data[mesIx]);
+							
+						});
+  						return 'Total: ' +   parseFloat(sum).toLocaleString(undefined,  { minimumFractionDigits: 2 })+ '\u20AC';
+  					},
+				},
+  				intersect: false
+  			},
+  			responsive: true,
+  			scales: {
+  				xAxes: [{
+  					stacked: true,
+  				}],
+  				yAxes: [{
+  					stacked: true,
+  					 ticks: {
+ 	                    callback: function(value, index, values) {
+ 	                        return  addPoints(value);
+ 	                    }
+ 	                }
+  				}]
+  			},
+			legend: {
+				labels: {
+					usePointStyle: true
+				}
+			},
+  	    }
+  	});  
+  
+  
+  
+  
+/********************
+*  Despesa          *
+********************/
+  var barDataDespesa = {
+		labels:  [{% for i in mesLabels %} '{{i}}', {% endfor %}],
+    		
+    	datasets: [
+    		{% for grups in vDespesa %}
+    		{
+    		label : '{{ grups }}', 	
+    		backgroundColor:  '{{ vDespesa|get_color:grups }}',
+    		data : {{ vDespesa|get_item:grups }}
+    		},
+    		{% endfor %}
+    	]
+  };
+  
+  
+  var desp = document.getElementById('despesa');
+  var despesa = new Chart(desp, {
+	    type: 'bar',
+	    data: barDataDespesa ,
+	    options: {
+	    	title: {
+				display: true,
+				text: 'Despesa',
+				fontSize: 20
+			},
+			tooltips: {
+				mode: 'point',
+				callbacks: {
+					// Use the footer callback to display the sum of the items showing in the tooltip
+					footer: function(tooltipItems, data) {
+  						var sum = 0;
+						var mesIx = 0
+						tooltipItems.forEach(function(tooltipItem) {
+  							mesIx = tooltipItem.index;
+  						});
+						data.datasets.forEach(function(dataset){
+							sum +=	 parseFloat(dataset.data[mesIx]);
+							
+						});
+  						return 'Total: ' +   parseFloat(sum).toLocaleString(undefined,  { minimumFractionDigits: 2 })+ '\u20AC';
+  					},
+				},
+				intersect: false
+			},
+			responsive: true,
+			scales: {
+				xAxes: [{
+					stacked: true,
+				}],
+				yAxes: [{
+					stacked: true,
+					ticks: {
+		                    callback: function(value, index, values) {
+		                        return  addPoints(value);
+		                    }
+		                }
+				}]
+			},
+			legend: {
+				labels: {
+					usePointStyle: true
+				}
+			},
+			
+	    }
+	});
+  
+  
+  
+/********************
+*  Saldo            *
+********************/
+  
+  var pieDataSaldo = {
+			labels:  [{% for i in saldoLabel %} '{{i}}', {% endfor %}],
+	    		
+	    	datasets: [{
+	    		data: {{saldoValues}},
+	    		backgroundColor:  [{% for i in saldoColor %} '{{i}}', {% endfor %}],
+	    		label:''
+	    	}]
+	  };
+  
+  var sald = document.getElementById('saldo');
+  var saldo = new Chart(sald, {
+	    type: 'pie',
+	    data: pieDataSaldo ,
+	    options: {
+	    	title: {
+				display: true,
+				text: 'Saldo',
+				responsive: true,
+				fontSize: 20
+			},
+			
+  			legend: {
+  				position: 'left',
+				labels: {
+					usePointStyle: true
+				}
+  			},
+  			tooltips: {
+				mode: 'point',
+				callbacks: {
+					// Use the footer callback to display the sum of the items showing in the tooltip
+					footer: function(tooltipItems, data) {
+						var sum = 0;
+						var sum2 = 0;
+						tooltipItems.forEach(function(tooltipItem) {
+							
+							for (var i = 0; i < 100; i++) {
+								var val = data.datasets[tooltipItem.datasetIndex].data[i];
+								if (!isNaN(val)){
+									sum += val;		
+								}
+							}
+							sum2=data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]
+						});
+						return 'Total: ' + parseFloat(sum2/sum*100).toFixed(2) +'%';
+					},
+				},
+				intersect: true
+			},
+	    }
+	});
+  
+  
+</script>
+{% endblock js_page %}

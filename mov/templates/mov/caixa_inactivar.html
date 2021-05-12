@@ -1,0 +1,55 @@
+{% extends 'base/inactivar.html' %}
+ 
+{% block js_page_inactiv %}
+ 
+<script>
+  $(document).ready(function(){
+  
+    var token = $('input[name=csrfmiddlewaretoken]').val();
+    $.ajaxSetup({
+          beforeSend: function(xhr, settings) {
+              if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                  xhr.setRequestHeader("X-CSRFToken", token);
+              }
+          }
+      });
+  
+    $("#btnInactivar").click(function(e){
+        e.preventDefault();
+        //alert("Probando");
+  		//alert(document.URL)
+        var id = {{ obj.id }};
+  		var template="{% url 'mov:caixa_inactivar' obj.id %}";
+        //template += id;
+        //alert(template);
+        var data = {"id":id};
+        data = JSON.stringify(data);
+  
+        $.ajax({
+          type: "POST",
+          url: template,
+          data: data,
+          beforeSend: function(xhr,settings){
+            $.ajaxSettings.beforeSend(xhr,settings);
+          },
+          success: function(response){
+            //alert(response)
+        	console.log(response);
+            var tipo=(response.startsWith('Element no existeix') ? 'red':'green' );
+            //mensaje(response);
+            tancar_modal();
+            location.reload();
+            
+          },
+          error: function(jqXHR, textStatus, errorThrow){
+            console.log(textStatus, errorThrow);
+            mensaje(response, 'red');
+            tancar_modal();
+          }
+        });
+    });
+  
+  });
+  </script>
+  
+{% endblock js_page_inactiv %}

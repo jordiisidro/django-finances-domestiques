@@ -1,0 +1,25 @@
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+		<form method="POST" class="form-inline">
+		    {% csrf_token %}
+		    <div class="col-xl-12 col-md-6 mb-6">
+		        <div class="card border-left-warning shadow h-100 py-2">
+		          <div class="card-body">
+		            <div class="row no-gutters align-items-center">
+		              <div class="col mr-4">
+		                <div class="text-xs font-weight-bold text-warning text-uppercase mb-2">Desactivar {{ obj.descripcio }}?</div>
+		                <button type="button" class="btn btn-danger" id="btnInactivar"><i class="far fa-question-circle"></i> Sí, desactivar</button>
+		                <button type="button" class="btn btn-success" onclick="return tancar_modal()"> Cancel·lar </button>
+		              </div>
+		              <div class="col-auto">
+		                <i class="fas fa-question-circle fa-2x text-gray-300"></i>
+		              </div>
+		            </div>
+		          </div>
+		        </div>
+		      </div>
+		</form>
+	</div>
+</diV>
+
+ {% block js_page_inactiv %} {% endblock js_page_inactiv %}

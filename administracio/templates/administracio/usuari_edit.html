@@ -1,0 +1,86 @@
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <form method="POST" role="form" class="form-inline" action="{% url 'administracio:usuari_edit' obj.pk %}" >
+        {% csrf_token %}
+            <div class="col-xl-12 col-md-12 mb-12">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+		                <div class="row no-gutters align-items-center">
+		                    <div class="col mr-2">
+		                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+		                            Editar usuari
+		                        </div>
+		                        <div class="dropdown-divider"></div>
+		                        <div class="row">
+		                            <div class="col-10">
+		                                <div class="input-group">
+		                                    <input type="text" name="nomusuari" maxlength="100" class="form-control"
+		                                        required id="id_nomusuari" placeholder="nomusuari;" disabled value="{{ obj.username}}">
+		                                </div>
+		                            </div>
+		
+		
+									<!-- <div class="col-10">
+		                                <div class="input-group">
+		                                    <input type="password" name="password" maxlength="100" class="form-control"
+		                                        required id="id_password" placeholder="password">
+		                                </div>
+		                            </div>-->
+		                            
+		                            <div class="col-10">
+		                                <div class="input-group">
+		                                    <input type="text" name="avatar" maxlength="100" class="form-control"
+		                                        required id="id_avatar" placeholder="avatar" value="{{ext.avatar}}">
+		                                </div>
+		                            </div>
+		                            
+		                        </div>
+		                        <div class="dropdown-divider"></div>
+		                        <div class="row">
+		                            <div class="col">
+		                                <button type="submit" class="btn btn-danger">
+		                                    <span class="fa fa-save"></span> Salvar </button>
+		                                <a href="#" onclick="tancar_modal()" class="btn btn-success"><span class="fa fa-undo"> Cancel&middot;lar</span> </a>
+		                                </button>
+		                            </div>
+		                        </div>
+		                    </div>
+		                </div>
+		            </div>
+		        </div>
+		    </div>
+		</form>
+	</div>
+</div>
+
+
+<script>
+$(function() {
+
+    var url = $("form").attr("action");
+    var token = jQuery("[name=csrfmiddlewaretoken]").val();
+
+    $("form").submit(function(e){
+        e.preventDefault();
+        // alert(token);
+        var formData = $("form").serializeArray();
+        // console.log(formData);
+        $.ajax({
+            url:url,
+            method:"POST",
+            headers: {'X-CSRFToken': token },
+            data: formData
+        })
+        .done(function(r,textStatus,xhr){
+            if(xhr.status=200){
+                location.reload(true);
+            }
+            else{
+				mensaje(textStatus);
+            }
+        }).fail(function (error) {
+        	mensaje(error.responseText, 'error');
+        });
+    });
+});
+</script>

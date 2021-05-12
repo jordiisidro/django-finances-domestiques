@@ -1,0 +1,365 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<!-- Dropdown Card Example -->
+<div class="card shadow mb-4">
+    <!-- Card Header - Dropdown -->
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    	 <div class="col-md-7">
+      <h6 class="m-0 font-weight-bold text-primary">Saldo</h6>
+    </div>
+    
+    <div class="col-md-2">
+        <div class="row no-gutters align-items-top">
+              <div class="col-md-6"><label for="lvl_dataInici">Mes</label>  </div>             
+              <select id="id_mes"  class="form-control">
+              	{%for m in lblMesos %}
+              		 <option value="{{m}}" {% if m|equals:month %} selected {%endif%}>{{m|get_mes}}</option>
+              	{% endfor %}
+              </select>
+          </div>
+      </div>
+
+	  <div class="col-md-2">
+          <div class="row no-gutters align-items-top">
+              <div class="col-md-6"><label for="id_dataFi">Any</label></div>
+              <input id="id_any" class="form-control" value="{{year}}"></input>
+          </div>
+      </div>
+
+
+	  <div class="col-md-2 align-items-center">
+          <div class="row no-gutters align-items-center">
+           
+              <div class="col-md-3"><button type="button" class="btn btn-primary" onclick="obre_url('{% url 'moviments:dashboard_saldo'%}')"> Refrescar  </button>  </div>
+             
+          </div>
+      </div>
+    </div>
+    
+   
+    <div class="col-xl-12 col-md-12 mb-12">	
+   		<div class="card  h-100 py-2">
+   			<div class="card-body">
+                <div class="row no-gutters align-items-center">
+                 <div class="col mr-6">
+			         &nbsp;	<canvas id="saldo"  width="50" height="25" ></canvas>
+					</div>
+					
+					<div class="col mr-6">
+					&nbsp;<canvas id="saldoPerc"  width="50" height="25" ></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-xl-12 col-md-12 mb-12">	
+		<div class="card  h-100 py-2">
+			 <div class="card-body">
+			 	 <div class="row no-gutters align-items-center">	
+				 	 <div class="col mr-12">	
+				         <table class=" table-striped table-hover" widht="100%">
+				            <thead>
+				            	<th  width="10%"> Caixa </th>
+				            	{% for x in mesLabels %}
+				            	<th width="6%" style="text-align:center;" >{{x}}</th>
+				            	{% endfor %}
+				            </thead>
+				             <tbody>
+				             	{% for grups in vSaldo %}
+				             		<tr>
+					             		<td>
+						                {{ grups }}
+						                </td>
+		  	    	        			{% for i in  vSaldo|get_data:grups %}
+			  	    	        			<td align="right">
+								                <script>
+								                var x = {{i}};
+								                document.write(x.toLocaleString(undefined,  { minimumFractionDigits: 2 })+ '\u20AC')
+								                </script>
+						    	            </td>
+						    	        {% endfor %}
+						    	     </tr>
+						        {% endfor %}
+						        	<tr style="font-weight: bold;">
+					             		<td>
+						                TOTAL
+						                </td>
+		  	    	        			
+		  	    	        			<!-- TD PER CADA MES -->
+		  	    	        			{% for y in mesNumber %}
+		  	    	        			<td align="right">
+		  	    	        			<script>
+		  	    	        				var x ={{ vSaldo|get_dataTotal:y }};
+							                document.write(x.toLocaleString(undefined,  { minimumFractionDigits: 2 })+ '\u20AC')
+		  	    	        			</script>
+		  	    	        			</td>
+		  	    	        			{% endfor %}
+						    	        
+						    	     </tr>
+						        
+					         </tbody>
+			           </table>
+	   				</div>
+	   			</div>	
+   			</div>
+   		</div>
+   	</div>
+   	
+   	
+   	<div class="col-xl-12 col-md-12 mb-12">	
+		<div class="card  h-100 py-2">
+			 <div class="card-body">
+			 	 <div class="row no-gutters align-items-center">	
+				 	 <div class="col mr-12">
+				 	  <h5> Bancs</h5>	
+				         <table class=" table-striped table-hover" widht="100%">
+				            <thead>
+				            	<th  width="10%"> Caixa </th>
+				            	{% for x in mesLabels %}
+				            	<th width="6%" style="text-align:center;" >{{x}}</th>
+				            	{% endfor %}
+				            </thead>
+				             <tbody>
+				             	{% for grups in vSaldo %}
+				             		{% if vSaldo|get_banc:grups %}
+				             		
+				             		<tr>
+					             		<td>
+						                {{ grups }}
+						                </td>
+		  	    	        			{% for i in  vSaldo|get_data:grups %}
+			  	    	        			<td align="right">
+								                <script>
+								                var x = {{i}};
+								                document.write(x.toLocaleString(undefined,  { minimumFractionDigits: 2 })+ '\u20AC')
+								                </script>
+						    	            </td>
+						    	        {% endfor %}
+						    	     </tr>
+						    	     {% endif %}
+						    	     
+						        {% endfor %}
+						        	<tr style="font-weight: bold;">
+					             		<td>
+						                TOTAL
+						                </td>
+		  	    	        			
+		  	    	        			<!-- TD PER CADA MES -->
+		  	    	        			{% for y in mesNumber %}
+		  	    	        			<td align="right">
+		  	    	        			<script>
+		  	    	        				var x ={{ vSaldo|get_dataTotalBanc:y }};
+							                document.write(x.toLocaleString(undefined,  { minimumFractionDigits: 2 })+ '\u20AC')
+		  	    	        			</script>
+		  	    	        			</td>
+		  	    	        			{% endfor %}
+						    	        
+						    	     </tr>
+						        
+					         </tbody>
+			           </table>
+	   				</div>
+	   			</div>	
+   			</div>
+   		</div>
+   	</div>
+ </div>  	
+   
+
+{% endblock page_content %}
+
+{% block js_page %}
+<script>
+  //Call the dataTables jQuery plugin
+  $(document).ready(function() {
+    $('.table').DataTable();
+  });
+  
+  
+  function addPoints(nStr)
+  {
+  	nStr += '';
+  	x = nStr.split('.');
+  	x1 = x[0];
+  	x2 = x.length > 1 ? '.' + x[1] : '';
+  	var rgx = /(\d+)(\d{3})/;
+  	while (rgx.test(x1)) {
+  		x1 = x1.replace(rgx, '$1' + '.' + '$2');
+  	}
+  	return x1 + x2;
+  }
+
+  function obre_url(urlInicial){
+		var mes = document.getElementById('id_mes').value
+		var any = document.getElementById('id_any').value
+		window.open(urlInicial+'/'+any+'/'+mes,"_self")
+		
+	}
+  
+
+  /********************
+  *  Saldo          *
+  ********************/
+    var lineDataSaldo = {
+  		labels:  [{% for i in mesLabels %} '{{i}}', {% endfor %}],
+      		
+      	datasets: [
+      		{% for grups in vSaldo %}
+      		{
+      		label : '{{ grups }}', 	
+      		backgroundColor:  '{{ vSaldo|get_color2:grups }}',
+      		borderColor:  '{{ vSaldo|get_color2:grups }}',
+      		data :  [{% for i in  vSaldo|get_data:grups %}  '{{i}}', {% endfor %}],
+      		fill: false,
+      		},
+      		{% endfor %}
+      	]
+    };
+    
+    
+    var sald = document.getElementById('saldo');
+    var saldo = new Chart(sald, {
+  	    type: 'line',
+  	    data: lineDataSaldo ,
+  	    options: {
+  	    	title: {
+  				display: true,
+  				text: 'Saldo',
+  				fontSize: 20
+  			},
+  			scales: {
+	            yAxes: [{
+	                ticks: {
+	                    // Include a dollar sign in the ticks
+	                    callback: function(value, index, values) {
+	                        return  addPoints(value);
+	                    }
+	                }
+	            }]
+	        },
+  			
+  			tooltips: {
+  				mode: 'point',
+  				callbacks: {
+  					// Use the footer callback to display the sum of the items showing in the tooltip
+  					footer: function(tooltipItems, data) {
+  						var sum = 0;
+						var mesIx = 0
+						tooltipItems.forEach(function(tooltipItem) {
+  							mesIx = tooltipItem.index;
+  						});
+						data.datasets.forEach(function(dataset){
+							sum +=	 parseFloat(dataset.data[mesIx]);
+							
+						});
+  						return 'Total: ' +   parseFloat(sum).toLocaleString(undefined,  { minimumFractionDigits: 2 })+ '\u20AC';
+  					},
+  					
+  					label: function(tooltipItem, data) {
+  	                    var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+  	                    if (label) {
+  	                        label += ': ';
+  	                    }
+  	                    label += tooltipItem.yLabel.toLocaleString(undefined,  { minimumFractionDigits: 2 });
+  	                    label +=  '\u20AC';
+  	                    return label;
+  	                },
+  				},
+  				intersect: false
+  			},
+  			responsive: true,
+  			legend: {
+  				labels: {
+  					usePointStyle: false
+  				}
+  			},
+  			hover: {
+				mode: 'nearest',
+				intersect: true
+			},
+		}
+  	});
+    
+    
+    
+    
+    
+    
+
+
+    /********************
+    *  SaldoPerc          *
+    ********************/
+      var lineDataSaldoPerc = {
+    		labels:  [{% for i in mesLabels %} '{{i}}', {% endfor %}],
+        		
+        	datasets: [
+        		{% for grups in vSaldoPerc %}
+        		{
+        		label : '{{ grups }}', 	
+        		backgroundColor:  '{{ vSaldoPerc|get_color2:grups }}',
+        		borderColor:  '{{ vSaldoPerc|get_color2:grups }}',
+        		data :  [{% for i in  vSaldoPerc|get_data:grups %}  '{{i}}', {% endfor %}],
+        		fill: false,
+        		},
+        		{% endfor %}
+        	]
+      };
+      
+      
+      var saldP = document.getElementById('saldoPerc');
+      var saldoPerc = new Chart(saldP, {
+    	    type: 'line',
+    	    data: lineDataSaldoPerc ,
+    	    options: {
+    	    	title: {
+    				display: true,
+    				text: 'Saldo %',
+    				fontSize: 20
+    			},
+    			scales: {
+    	            yAxes: [{
+    	                ticks: {
+    	                    // Include a dollar sign in the ticks
+    	                    callback: function(value, index, values) {
+    	                        return  value+'%';
+    	                    }
+    	                }
+    	            }]
+    	        },
+    			tooltips: {
+    				mode: 'point',
+    				callbacks: {
+    					label: function(tooltipItem, data) {
+      	                    var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+      	                    if (label) {
+      	                        label += ': ';
+      	                    }
+      	                    label += tooltipItem.yLabel.toLocaleString(undefined,  { minimumFractionDigits: 2 });
+      	                    label +=  '%';
+      	                    return label;
+      	                },
+    				},
+    				intersect: false
+    			},
+    			responsive: true,
+    			legend: {
+    				labels: {
+    					usePointStyle: false
+    				}
+    			},
+    			hover: {
+  				mode: 'nearest',
+  				intersect: true
+  			},
+    			
+    	    }
+    	});
+      
+      
+  
+</script>
+{% endblock js_page %}

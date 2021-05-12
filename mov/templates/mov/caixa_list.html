@@ -1,0 +1,72 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+<!-- Dropdown Card Example -->
+<div class="card shadow mb-4">
+    <!-- Card Header - Dropdown -->
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+      <h6 class="m-0 font-weight-bold text-primary">Caixa</h6>
+      <div class="dropdown no-arrow">
+        <a onclick="return obrir_modal('{% url 'mov:caixa_new' %}')" href="#" class="btn btn-success btn-circle" role="button" ><i class="fa fa-plus"> </i></a>  
+      </div>
+    </div>
+    <!-- Card Body -->
+    <div class="card-body">
+        {% if not obj %}
+        <div class="alert alert-info">No hi ha caixes</div>
+        {%else %}
+        <table class="table table-striped table-hover">
+            <thead>
+            	<th>Descripci&oacute</th>
+            	<th>Color</th>
+            	<th>Banc</th>
+                <!-- <th>Estat</th>-->
+                <th>Activa usuari</th>
+                <th>Data creaci&oacute</th>
+                <th>Data modificaci&oacute</th>
+                
+                <th class="all">Accions</th>
+            </thead>
+            <tbody>
+                {% for item in obj %}
+                <tr>
+                	<td>{{item.descripcio}}</td>
+                	<td>
+                         <button disabled class="color" value="{{item.color}}" style="border: none;">&nbsp;&nbsp;&nbsp; </button>
+				    </td>
+				    <td>{{item.banc|yesno:"Sí,No" }}</td>
+                    <!-- <td>{{item.estat|yesno:"Actiu,Inactiu" }}</td> -->
+                    <td>{{item.usuaris|is_username:user.username|yesno:"Sí,No" }} </td>
+                    <td>{{item.dataCreacio|date:"d/m/Y H:i:s"}}</td>
+                    <td>{{item.dataModificacio|date:"d/m/Y H:i:s"}}</td>
+                    <td>
+                        <button class="btn btn-info btn-circle" onclick="return obrir_modal('{% url 'mov:caixa_edit' item.id %}')"><i class="far fa-edit"></i></button>
+                        {% if item.usuaris|is_username:user.username %}
+                        <button class="btn btn-danger btn-circle" onclick="return obrir_modal('{% url 'mov:caixa_canvia_estat' item.id %}')"><i class="fas fa-user-times"></i></button>
+                        {% else %}
+                        <button class="btn btn-success btn-circle" onclick="return obrir_modal('{% url 'mov:caixa_canvia_estat' item.id %}')"><i class="fas fa-user-check"></i></button>
+                        {% endif %}  
+                        <!--  <button class="btn btn-primary btn-circle" onclick="return obrir_modal('{% url 'mov:caixa_usuaris' item.id %}')"><i class="fas fa-users"></i></button>-->
+                        <button class="btn btn-warning btn-circle" onclick="return obrir_modal('{% url 'mov:caixa_inactivar' item.id %}')"><i class="far fa-thumbs-down"></i></button>
+                        <a href="{% url 'mov:caixa_del' item.id %}" class="btn btn-danger btn-circle" role="button" ><i class="far fa-trash-alt"> </i></a>  
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+{% endblock page_content %}
+
+{% block js_page %}
+<script>
+  //Call the dataTables jQuery plugin
+  $(document).ready(function() {
+    $('.table').DataTable();
+  });
+  
+  $('.color').colorPicker({
+	}); 
+</script>
+{% endblock js_page %}
