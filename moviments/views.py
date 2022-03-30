@@ -50,7 +50,7 @@ class MovimentView(SensePrivilegis, generic.ListView):
     context_object_name = "obj"
     
     def get_queryset(self):
-        return Moviment.objects.filter(usuariCreacio=self.request.user)
+        return Moviment.objects.select_related('caixa').select_related('detallMoviment__subgrupMoviment__grupMoviment').select_related('formaPagament').filter(usuariCreacio=self.request.user)
 
     
 class MovimentNew(ViewBaseNew):
@@ -292,6 +292,7 @@ def balanc( request, year, data):
 def dashboardMoviments2(request):
     
     year=master.currentYear
+    lastyear=master.lastYear
     #saldo
     saldo = piesaldo(request)
     
@@ -310,14 +311,14 @@ def dashboardMoviments2(request):
     
     # despesa  mensual (eliminant els positius)
     despesamensual = Moviment.objects.\
-        filter(Q(usuariCreacio__username=request.user) & Q(dataMoviment__year__lte=year) & Q(valor__lt=0) & ~Q(detallMoviment__subgrupMoviment__grupMoviment__descripcio__exact='TRASPÀS COMPTES')).\
+        filter(Q(usuariCreacio__username=request.user) & (Q(dataMoviment__year__exact=year) | Q(dataMoviment__year__exact=lastyear) & Q(dataMoviment__month__gte=master.currentMonth)) & Q(valor__lt=0) & ~Q(detallMoviment__subgrupMoviment__grupMoviment__descripcio__exact='TRASPÀS COMPTES')).\
         annotate(month=ExtractMonth('dataMoviment'), year=ExtractYear('dataMoviment')).\
         values('month', 'year', 'detallMoviment__subgrupMoviment__grupMoviment__descripcio').\
         annotate(total=-Sum('valor')).\
         order_by('year','month')
     # ingrés mensual (tots els positius)
     ingresmensual = Moviment.objects.\
-        filter(Q(usuariCreacio__username=request.user) & Q(dataMoviment__year__lte=year) & Q(valor__gt=0) & ~Q(detallMoviment__subgrupMoviment__grupMoviment__descripcio__exact='TRASPÀS COMPTES')   & ~Q(detallMoviment__descripcio__exact='SALDO INICIAL')).\
+        filter(Q(usuariCreacio__username=request.user) &  (Q(dataMoviment__year__exact=year) | Q(dataMoviment__year__exact=lastyear) & Q(dataMoviment__month__gte=master.currentMonth))& Q(valor__gt=0) & ~Q(detallMoviment__subgrupMoviment__grupMoviment__descripcio__exact='TRASPÀS COMPTES')   & ~Q(detallMoviment__descripcio__exact='SALDO INICIAL')).\
         annotate(month=ExtractMonth('dataMoviment'), year=ExtractYear('dataMoviment')).\
         values('month', 'year','detallMoviment__subgrupMoviment__grupMoviment__descripcio').\
         annotate(total=Sum('valor')).\
@@ -330,17 +331,16 @@ def dashboardMoviments2(request):
     
     vIngres = copy.deepcopy(vDespesa)
     
-    
     for x in despesamensual:
         vDespesa[x['detallMoviment__subgrupMoviment__grupMoviment__descripcio']][1][labelsPos[master.months[int(x['month'])]+'-'+str(x['year'])]] = float(x['total'])
-   
+        
     
     for x in ingresmensual:
         vIngres[x['detallMoviment__subgrupMoviment__grupMoviment__descripcio']][1][labelsPos[master.months[int(x['month'])]+'-'+str(x['year'])]] = float(x['total'])
     
     context = {}
     template_name = "moviment/moviment_dashboard.html"
-        
+    
     if request.method == 'GET':
         context = { 'mesLabels':labels, 'vBalanc':list(data.values()), 
                    'vDespesa':vDespesa, 'vIngres':vIngres,
@@ -439,15 +439,24 @@ def dashboardDespesa(request, year=master.currentYear, month=master.currentMonth
      
      
     despesamensual = Moviment.objects.\
-        filter(Q(usuariCreacio__username=request.user) & Q(dataMoviment__lte=datetime.date(year, month, 1)+ relativedelta(months=1)+ relativedelta(days=-1)) & Q(valor__lt=0) & ~Q(detallMoviment__subgrupMoviment__grupMoviment__descripcio__exact='TRASPÀS COMPTES')).\
+        filter(Q(usuariCreacio__username=request.user) 
+            & Q(dataMoviment__lte=datetime.date(year, month, 1)+ relativedelta(months=1)+ relativedelta(days=-1)) 
+            & Q(dataMoviment__gte=datetime.date(year-1, month, 1)+ relativedelta(months=1)+ relativedelta(days=-1)) 
+            & Q(valor__lt=0) 
+            & ~Q(detallMoviment__subgrupMoviment__grupMoviment__descripcio__exact='TRASPÀS COMPTES')).\
         annotate(month=ExtractMonth('dataMoviment'), year=ExtractYear('dataMoviment')).\
         values('month', 'year', 'detallMoviment__subgrupMoviment__grupMoviment__descripcio').\
         annotate(total=-Sum('valor')).\
         order_by('year','month')
     
+    despesamensualSubgrup =[]
     
     despesamensualSubgrup = Moviment.objects.\
-        filter(Q(usuariCreacio__username=request.user) & Q(dataMoviment__lte=datetime.date(year, month, 1)+ relativedelta(months=1)+ relativedelta(days=-1)) & Q(valor__lt=0) & ~Q(detallMoviment__subgrupMoviment__grupMoviment__descripcio__exact='TRASPÀS COMPTES')).\
+        filter(Q(usuariCreacio__username=request.user) 
+        & Q(dataMoviment__lte=datetime.date(year, month, 1)+ relativedelta(months=1)+ relativedelta(days=-1)) 
+        & Q(dataMoviment__gte=datetime.date(year-1, month, 1)+ relativedelta(months=1)+ relativedelta(days=-1)) 
+        & Q(valor__lt=0) 
+        & ~Q(detallMoviment__subgrupMoviment__grupMoviment__descripcio__exact='TRASPÀS COMPTES')).\
         annotate(month=ExtractMonth('dataMoviment'), year=ExtractYear('dataMoviment')).\
         values('month', 'year', 'detallMoviment__subgrupMoviment__grupMoviment__descripcio', 'detallMoviment__subgrupMoviment__descripcio').\
         annotate(total=-Sum('valor')).\
@@ -466,6 +475,8 @@ def dashboardDespesa(request, year=master.currentYear, month=master.currentMonth
     
     for x in despesamensual:
         vDespesa[x['detallMoviment__subgrupMoviment__grupMoviment__descripcio']][1][labelsPos[master.months[int(x['month'])]+'-'+str(x['year'])]] = float(x['total'])
+        
+    
     for x in despesamensualSubgrup:
         vDespesaSubgrup[x['detallMoviment__subgrupMoviment__grupMoviment__descripcio']][x['detallMoviment__subgrupMoviment__descripcio']][0][labelsPos[master.months[int(x['month'])]+'-'+str(x['year'])]] = float(x['total'])
         
