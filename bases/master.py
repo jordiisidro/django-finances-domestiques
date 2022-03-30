@@ -5,6 +5,7 @@ from datetime import date
 
 currentMonth = date.today().month
 currentYear = date.today().year
+lastYear = date.today().year-1
 
 firstDateCurrentYear = date(date.today().year, 1, 1)
 lastDateCurrentYear = date(date.today().year, 12, 31)
